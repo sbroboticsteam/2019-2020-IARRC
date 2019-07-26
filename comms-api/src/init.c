@@ -75,7 +75,7 @@ static int init_topics(struct array_list *topics, int n, topic_t **sock_array, t
 static topic_info_t *parse_topic(struct json_object *topic);
 
 /** Helper for init_topics()
- * checks if the file at path exists, and creates the file if it doesn't exist yet
+ * checks if the file at "/tmp/comms/"+path exists, and creates the file if it doesn't exist yet
  */
 static void ipc_file(char *path);
 
@@ -185,15 +185,22 @@ static int init_topics(struct array_list *topics, int n, topic_t **sock_array, t
 		void *socket = zmq_socket(g_context, type);	// TODO: error handling	
 		
 		/* CONSTRUCT ENDPOINT */
-		char *endpoint = malloc(strlen(info->transport)+strlen(info->address)+4);
-		if (endpoint == NULL) { return -1; }
-		strcpy(endpoint, info->transport);
-		strcat(endpoint, "://");
+		char *endpoint;
+		if (strcmp(info->transport, IPC) != 0) {
+			endpoint = malloc(9+strlen(info->address)+1);	/* "inproc://" + address + "\0" */
+			if (endpoint == NULL) { return -1; }
+			strcpy(endpoint, "inproc://");
+		}
+		else {
+			endpoint = malloc(17+strlen(info->address)+1);	/* "ipc:///tmp/comms/" + address + "\0" */
+			if (endpoint == NULL) { return -1; }
+			strcpy(endpoint, "ipc:///tmp/comms/");
+		}
 		strcat(endpoint, info->address);
 		
 		/* CONNECT/BIND THE SOCKET */
 		if (strcmp(info->transport, IPC) == 0) {	
-			ipc_file(info->address);	/* make sure the address exist for ipc */
+			ipc_file(info->address);	/* make sure "/tmp/comms"+address exist for ipc */
 		}
 		if (type == ZMQ_PUB) {
 			zmq_bind(socket, endpoint);		// TODO: error handling

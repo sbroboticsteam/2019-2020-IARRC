@@ -15,27 +15,32 @@
 	+ json-c-dev
 	+ json-c3
 
-This library will be designed to be thread-safe with its intended use
+this API is made to run in a Linux environment (originally written in Ubuntu 18.04.2)
+
+>This library will be designed to be thread-safe with its intended use
 
 ## How to use
 
->#include <comms.h>
+```c
+#include <comms.h>
+```
 
+>find more details in [comms.h](https://github.com/sbroboticsteam/2019-2020-IARRC/blob/julie-comms-api/comms-api/include/comms.h)
 
 ### Functions
 	
+```c
+int init_comms();
 ```
-int init_comms()
-```
-**call exactly once in every process before calling any of the other comms functions**<br>
+**!** call exactly once in every process, before calling any of the other comms functions<br>
 this function initializes the ZeroMQ context for you
 + returns 0 on success, -1 on failure and sets errno accordingly
 
-```
-void *init_node(char *config_path, topic_info_array_t *info_array)
+```c
+void *init_node(char *config_path, topic_info_array_t *info_array);
 ```
  
-**call exactly once in every node before using publish() or subscribe()**<br>
+**!** call exactly once in every node, before using publish() or subscribe()<br>
 initializes the sockets for each topic
 + config_path: path to the config file for the node<br>
 + info_array: reference to a topic_info_array_t<br>
@@ -44,8 +49,8 @@ optional, for if you want to receive the config info in a struct
 >the returned pointer contains state information needed by the library functions<br>
 >it should be sent as the last argument to publish() & subscribe()
 
-```
-int publish(char *topic, void *msg, size_t size, int flags, void *node)
+```c
+int publish(char *topic, void *msg, size_t size, int flags, void *node);
 ```
 builds a zmq message and sends it on the specified topic
 + topic: name of the topic to send a message on
@@ -54,17 +59,17 @@ builds a zmq message and sends it on the specified topic
 + flags: set flag COMMS_NONBLOCKING to make function non-blocking
 + node: pointer returned by init_node
 + returns 0 on success, -1 on failure and sets errno accordingly
-```
-msg_t *subscribe(char *topic, int flags, void *node)
+```c
+msg_t *subscribe(char *topic, int flags, void *node);
 ```
 listens for a message on the specified topic and returns a pointer to a received
 message.
 + topic: name of the topic
 + flags: set flag COMMS_NONBLOCKING to make function non-blocking
 + node: pointer returned by init_node
-+ returns a struct containing the received message and the message size
-```
-void close_msg(msg_t *msg)
++ returns a struct containing the received message and the message size, NULL on failure & sets errno accordingly
+```c
+void close_msg(msg_t *msg);
 ```
 call to deallocate messages retrieved from subscribe() that are no longer needed
 
@@ -85,13 +90,13 @@ each node needs to have one JSON config file for all of its topics
 			"name":"topic-a"
 			"role":"pub"
 			"transport":"ipc"
-			"address":"/tmp/topic-a"
+			"address":"foo"
 		},
 		{
 			"name":"topic-b"
 			"role":"sub"
 			"transport":"inproc"
-			"address":"literally-any-name"
+			"address":"bar"
 		}
 	]
 }
@@ -115,14 +120,12 @@ In the config file, a topic has 4 fields:
 	name: a name for the user to identify the topic. 
 
 	role: "pub" or "sub"
-			"pub": means the node publishes on that topic -> uses publish()
-			"sub": means the node subscribes to that topic -> uses subscribe()
+			"pub": means the node publishes on that topic
+			"sub": means the node subscribes to that topic
 
 	transport: "ipc" or "inproc"
 
-	address: the format of the address depends on the transport mode
-			ipc: path to a file in /tmp
-				If the file doesn't already exist, init_node() will automatically create it
-				*two ipc topics cannot share the same file
-			inproc: the address can be any string
-				*two inproc topics in the same process cannot have the same address
+	address: can be any string
+			*two ipc topics cannot have the same address
+			*two inproc topics in the same process cannot have the same address
+			for ipc, the address becomes a file in /tmp/comms/
