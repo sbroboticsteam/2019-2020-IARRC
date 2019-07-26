@@ -199,6 +199,7 @@ static int init_topics(struct array_list *topics, int n, topic_t **sock_array, t
 			zmq_bind(socket, endpoint);		// TODO: error handling
 		}
 		else {
+			zmq_setsockopt(socket, ZMQ_SUBSCRIBE, NULL, 0);	// receive all messages
 			zmq_connect(socket, endpoint);	// TODO: error handling
 		}
 		free(endpoint);
