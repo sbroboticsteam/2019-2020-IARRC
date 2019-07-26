@@ -38,8 +38,8 @@ typedef struct {
 } topic_t;
 
 /** struct to store all topics for a node
- * topics: head of null-terminated linked list of topic_t entries
- * num_topics: size of list
+ * topics: array of (topic_t *) pointers
+ * num_topics: size of array
  */
 typedef struct {
 	topic_t **topics;
