@@ -6,6 +6,8 @@
 #ifndef COMMS_H
 #define COMMS_H
 
+#include <stdlib.h>
+
 #define PUB "pub"
 #define SUB "sub"
 #define INPROC "inproc"
@@ -69,6 +71,7 @@ void *init_node(char *config_path, topic_info_array_t *info_array);
 
 /**
  * builds a zmq message and sends it on the specified topic
+ * if there are no connections on the topic's socket, the message will be dropped
  * topic: name of the topic message is being sent on
  * msg: the message to be sent. Will be passed on to zmq's internal message creation functions
  * size: size of the message in bytes

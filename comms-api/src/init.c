@@ -7,10 +7,12 @@
 #include <errno.h> 
 #include <stdio.h>
 #include <string.h>
+#include <assert.h>
  
 #include "comms.h" 
 
 #define MAX_CONFIG_SIZE 1024	// TODO: make this a reasonable number
+#define NODECODE 12345			/* value of nodecode in node_t struct */
 
 
 /* -------------------------------GLOBAL VARIABLES------------------------------------ */
@@ -42,6 +44,7 @@ typedef struct {
  * num_topics: size of array
  */
 typedef struct {
+	int nodecode;			/* an attempt at solving the (void *) casting problem */
 	topic_t **topics;
 	int num_topics;
 } node_t;
@@ -100,22 +103,21 @@ void *init_node(char *config_path, topic_info_array_t *info_array) {
 	struct json_object *j_configs = parse_config(config_path);					/* j_configs: the entire config file, parsed */
 	if ( j_configs == NULL ) return NULL;
 	
-	/* INITIALIZE node STRUCT */
+	/* ALLOCATE node STRUCT */
 	node_t *node = (node_t *)malloc(sizeof(node_t));							/* node: the node, to be filled w/ all socket information & returned to the user */
 	if (node == NULL) return NULL;
-	node->topics = NULL;
-	node->num_topics = 0;
+	node->nodecode = NODECODE;
 	
 	/* EXTRACT ARRAYLIST OF TOPICS */
 	struct json_object *j_topics;												/* j_topics: value for key "topics", should contain an arraylist */
 	json_bool r = json_object_object_get_ex(j_configs, "topics", &j_topics);
 	if (r == FALSE) {
-		// TODO: set errno or print error message (unrecognized config format)
+		// TODO: set errno (incorrect config format)
 		return NULL;
 	}
 	struct array_list *topics = json_object_get_array(j_topics);				/* topics: json arraylist extracted from j_topics | <json-c/arraylist.h> */
 	if (topics == NULL) {
-		// TODO: print error message or set errno (unrecognized config format)
+		// TODO: set errno (incorrect config format)
 		return NULL;
 	}
 	
@@ -155,6 +157,9 @@ static struct json_object *parse_config(char *path) {
 	char buffer[MAX_CONFIG_SIZE];
 	struct json_object *parsed_json;
 	fp = fopen(path,"r");
+	if (fp == NULL) {
+		return NULL;
+	}
 	size_t x = fread(buffer, 1, MAX_CONFIG_SIZE, fp);	/* read at most MAX_CONFIG_SIZE bytes */
 	if (ferror(fp)) {
 		fclose(fp);
@@ -162,6 +167,9 @@ static struct json_object *parse_config(char *path) {
 	}
 	fclose(fp);
 	parsed_json = json_tokener_parse(buffer);
+	if (parsed_json == NULL) {
+		// TODO: set errno (file is not in correct json format)
+	}
 	return parsed_json;
 }
 
@@ -172,17 +180,22 @@ static int init_topics(struct array_list *topics, int n, topic_t **sock_array, t
 		topic_info_t *info = parse_topic(array_list_get_idx(topics, i));
 		if (info == NULL) return -1;
 		
-		/* CHECK WHAT ROLE (PUB/SUB) */
+		/* CHECK ROLE & TRANSPORT */
 		int type;									
 		if (strcmp(info->role, PUB) == 0) { type = ZMQ_PUB; }
 		else if (strcmp(info->role, SUB) == 0) { type = ZMQ_SUB; }
 		else { 
-			// TODO: set errno or print error message (topic has invalid role)
+			// TODO: set errno (topic has invalid role)
+			return -1;
+		}
+		if (strcmp(info->transport, IPC) != 0 && strcmp(info->transport, INPROC) != 0) {
+			// TODO: set errno (topic has invalid transport)
 			return -1;
 		}
 		
 		/* CREATE A SOCKET FOR THE TOPIC */
-		void *socket = zmq_socket(g_context, type);	// TODO: error handling	
+		void *socket = zmq_socket(g_context, type);	
+		if (socket == NULL) return -1;
 		
 		/* CONSTRUCT ENDPOINT */
 		char *endpoint;
@@ -203,19 +216,22 @@ static int init_topics(struct array_list *topics, int n, topic_t **sock_array, t
 			ipc_file(info->address);	/* make sure "/tmp/comms"+address exist for ipc */
 		}
 		if (type == ZMQ_PUB) {
-			zmq_bind(socket, endpoint);		// TODO: error handling
+			if (zmq_bind(socket, endpoint) != 0) return -1;
 		}
 		else {
-			zmq_setsockopt(socket, ZMQ_SUBSCRIBE, NULL, 0);	// receive all messages
-			zmq_connect(socket, endpoint);	// TODO: error handling
+			if (zmq_setsockopt(socket, ZMQ_SUBSCRIBE, NULL, 0) != 0) return -1;	/* all subs receive all messages */
+			if (zmq_connect(socket, endpoint) != 0) return -1;
 		}
 		free(endpoint);
 		
 		/* ADD SOCKET TO sock_array ARRAY */
-		topic_t *thistopic = malloc(sizeof(topic_t));	
+		topic_t *thistopic = malloc(sizeof(topic_t));
+		if (thistopic == NULL) return -1;
 		thistopic->socket = socket;
 		thistopic->name = malloc(strlen(info->name)+1);
+		if (thistopic->name == NULL) return -1;
 		strcpy(thistopic->name, info->name);
+		assert(sock_array != NULL);
 		sock_array[i] = thistopic;
 		
 		/* TAKE CARE OF info STRUCT */
@@ -234,20 +250,21 @@ static topic_info_t *parse_topic(struct json_object *topic) {
 	struct json_object *j_transport;
 	struct json_object *j_address;
 	topic_info_t *parsed = malloc(sizeof(topic_info_t));
+	if (parsed == NULL) return NULL;
 	if (json_object_object_get_ex(topic, "name", &j_name) == FALSE) {
-		// TODO: set errno or print error message
+		// TODO: set errno (missing config entry)
 		return NULL;
 	}
 	if (json_object_object_get_ex(topic, "role", &j_role) == FALSE) {
-		// TODO: set errno or print error message
+		// TODO: set errno (missing config entry)
 		return NULL;
 	}
 	if (json_object_object_get_ex(topic, "transport", &j_transport) == FALSE) {
-		// TODO: set errno or print error message
+		// TODO: set errno (missing config entry)
 		return NULL;
 	}
 	if (json_object_object_get_ex(topic, "address", &j_address) == FALSE) {
-		// TODO: set errno or print error message
+		// TODO: set errno (missing config entry)
 		return NULL;
 	}
 	const char *name 		= json_object_get_string(j_name);
@@ -271,6 +288,7 @@ static void ipc_file(char *path) {
 }
 
 static void free_topic_info(topic_info_t *p) {
+	assert(p != NULL && p->name != NULL && p->role != NULL && p->transport != NULL && p->address != NULL);
 	free(p->name);
 	free(p->role);
 	free(p->transport);

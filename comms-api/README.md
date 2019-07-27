@@ -53,6 +53,7 @@ optional, for if you want to receive the config info in a struct
 int publish(char *topic, void *msg, size_t size, int flags, void *node);
 ```
 builds a zmq message and sends it on the specified topic
+<br>drops the message if there are no connections on the specified topic
 + topic: name of the topic to send a message on
 + msg: message to send
 + size: size of the message in bytes
@@ -87,15 +88,15 @@ each node needs to have one JSON config file for all of its topics
 {
 	"topics": [
 		{
-			"name":"topic-a"
-			"role":"pub"
-			"transport":"ipc"
+			"name":"topic-a",
+			"role":"pub",
+			"transport":"ipc",
 			"address":"foo"
 		},
 		{
-			"name":"topic-b"
-			"role":"sub"
-			"transport":"inproc"
+			"name":"topic-b",
+			"role":"sub",
+			"transport":"inproc",
 			"address":"bar"
 		}
 	]
@@ -125,7 +126,7 @@ In the config file, a topic has 4 fields:
 
 	transport: "ipc" or "inproc"
 
-	address: can be any string
+	address: a topic's address can be any string
 			*two ipc topics cannot have the same address
 			*two inproc topics in the same process cannot have the same address
 			for ipc, the address becomes a file in /tmp/comms/
