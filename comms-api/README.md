@@ -8,11 +8,11 @@
 | 1. inproc: in-process (inter-thread) <br>2. ipc: local inter-process | simple pub-sub only|
 
 ### Dependencies
-+ ZeroMQ packages: (version 4.2.5)
++ ZeroMQ packages: (version 4.2.5)<br>
 `sudo apt-get install libzmq3-dev`
 	+ (this should also install package libzmq5)
 + JSON-C packages:
-`sudo apt-get install libjson-c-dev`
+`sudo apt-get install libjson-c-dev`<br>
 	+ (this should automatically install package libjson-c3)
 
 this API is made to run in a Linux environment (originally written in Ubuntu 18.04.2)
