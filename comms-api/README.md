@@ -9,11 +9,11 @@
 
 ### Dependencies
 + ZeroMQ packages: (version 4.2.5)
-	+ libzmq3-dev
-	+ libzmq5
+`sudo apt-get install libzmq3-dev`
+	+ (this should also install package libzmq5)
 + JSON-C packages:
-	+ libjson-c-dev
-	+ libjson-c3
+`sudo apt-get install libjson-c-dev`
+	+ (this should automatically install package libjson-c3)
 
 this API is made to run in a Linux environment (originally written in Ubuntu 18.04.2)
 
