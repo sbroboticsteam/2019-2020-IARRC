@@ -6,8 +6,8 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
-#define PUB_PATH "./test/config/pub_ipc.json"
-#define SUB_PATH "./test/config/sub_ipc.json"
+#define PUB_PATH "../test/config/pub_ipc.json"
+#define SUB_PATH "../test/config/sub_ipc.json"
 
 void print_configs(topic_info_array_t *configs);
 void print_message(msg_t *msg);
@@ -23,7 +23,9 @@ void publisher() {
 		exit(1);
 	}
 	printf("publisher socket initialized\n");
-	send("pub1", "hey\n", 5, pnode);
+	while (1) {
+		send("pub1", "hey\n", 5, pnode);
+	}
 }
 
 void subscriber() {
@@ -40,21 +42,22 @@ void subscriber() {
 int main() {
 	int ppid, spid;
 	int pstatus, sstatus;
-	if ((ppid = fork()) == 0) {
-		printf("forked: calling publisher\n");
+	//if ((ppid = fork()) == 0) {
+	//	printf("forked: calling publisher\n");
         publisher(); 
-	}
-	else if ((spid = fork()) == 0) {
-		printf("forked: calling subscriber\n");
-		subscriber();
-	}
-	else {
-		if (ppid == -1) perror("publisher fork failed:");
-		else waitpid(ppid, &pstatus, 0);
-		if (spid == -1) perror("subscriber fork failed:");
-		else waitpid(spid, &sstatus, 0);
-		printf("pstatus: %d\nsstatus: %d\n", pstatus, sstatus);
-	}
+	// }
+	//else if ((spid = fork()) == 0) {
+	//	printf("forked: calling subscriber\n");
+	//	subscriber();
+	//}
+	//else {
+	//	if (ppid == -1) perror("publisher fork failed:");
+	//	else waitpid(ppid, &pstatus, 0);
+	//	if (spid == -1) perror("subscriber fork failed:");
+	//	else waitpid(spid, &sstatus, 0);
+	//	WEXITSTATUS(pstatus)
+	//	WEXITSTATUS(sstatus)
+	//}
 	return 0;
 }
 

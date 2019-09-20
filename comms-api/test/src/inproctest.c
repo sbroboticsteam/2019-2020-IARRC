@@ -5,8 +5,8 @@
 #include <errno.h>
 #include <assert.h>
 
-#define PUB_PATH "./test/config/pub_inproc.json"	// TODO: make config paths absolute
-#define SUB_PATH "./test/config/sub_inproc.json"
+#define PUB_PATH "../test/config/pub_inproc.json"	// TODO: make config paths absolute
+#define SUB_PATH "../test/config/sub_inproc.json"
 
 void print_configs(topic_info_array_t *configs) {
 	printf("number of topics: %d\n", configs->num_topics);

@@ -78,7 +78,7 @@ static int init_topics(struct array_list *topics, int n, topic_t **sock_array, t
 static topic_info_t *parse_topic(struct json_object *topic);
 
 /** Helper for init_topics()
- * checks if the file at "/tmp/comms/"+path exists, and creates the file if it doesn't exist yet
+ * checks if the file at "/home/robot/Documents/2019-2020-IARRC/comms-api/ipcfiles/"+path exists, and creates the file if it doesn't exist yet
  */
 static void ipc_file(char *path);
 
@@ -205,15 +205,15 @@ static int init_topics(struct array_list *topics, int n, topic_t **sock_array, t
 			strcpy(endpoint, "inproc://");
 		}
 		else {
-			endpoint = malloc(17+strlen(info->address)+1);	/* "ipc:///tmp/comms/" + address + "\0" */
+			endpoint = malloc(17+strlen(info->address)+1);	/* "ipc:///home/robot/Documents/2019-2020-IARRC/comms-api/ipcfiles/" + address + "\0" */
 			if (endpoint == NULL) { return -1; }
-			strcpy(endpoint, "ipc:///tmp/comms/");
+			strcpy(endpoint, "ipc:///home/robot/Documents/2019-2020-IARRC/comms-api/ipcfiles/");
 		}
 		strcat(endpoint, info->address);
 		
 		/* CONNECT/BIND THE SOCKET */
 		if (strcmp(info->transport, IPC) == 0) {	
-			ipc_file(info->address);	/* make sure "/tmp/comms"+address exist for ipc */
+			ipc_file(info->address);	/* make sure /home/robot/Documents/2019-2020-IARRC/comms-api/ipcfiles/+address exist for ipc */
 		}
 		if (type == ZMQ_PUB) {
 			if (zmq_bind(socket, endpoint) != 0) return -1;
@@ -285,6 +285,7 @@ static topic_info_t *parse_topic(struct json_object *topic) {
 
 static void ipc_file(char *path) {
 	// TODO
+	// check if /home/robot/Documents/2019-2020-IARRC/comms-api/ipcfiles/path exists & create it otherwise
 }
 
 static void free_topic_info(topic_info_t *p) {

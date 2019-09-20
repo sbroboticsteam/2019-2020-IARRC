@@ -5,8 +5,8 @@
 #include <errno.h>
 #include <assert.h>
 
-#define PATH1 "./test/config/ps1.json"	// TODO: make config paths absolute
-#define PATH2 "./test/config/ps2.json"
+#define PATH1 "../test/config/ps1.json"	// TODO: make config paths absolute
+#define PATH2 "../test/config/ps2.json"
 
 void print_configs(topic_info_array_t *configs) {
 	printf("number of topics: %d\n", configs->num_topics);
