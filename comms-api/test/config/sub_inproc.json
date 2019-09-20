@@ -1,0 +1,10 @@
+{
+	"topics": [
+		{
+			"name":"sub1",
+			"role":"sub",
+			"transport":"inproc",
+			"address":"foo"
+		}
+	]
+}

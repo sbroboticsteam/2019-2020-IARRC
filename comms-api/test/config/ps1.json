@@ -1,0 +1,16 @@
+{
+	"topics": [
+		{
+			"name":"pub1",
+			"role":"pub",
+			"transport":"inproc",
+			"address":"foo"
+		},
+		{
+			"name":"sub1",
+			"role":"sub",
+			"transport":"inproc",
+			"address":"bar"
+		}
+	]
+}

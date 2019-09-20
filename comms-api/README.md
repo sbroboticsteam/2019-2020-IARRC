@@ -12,8 +12,8 @@
 	+ libzmq3-dev
 	+ libzmq5
 + JSON-C packages:
-	+ json-c-dev
-	+ json-c3
+	+ libjson-c-dev
+	+ libjson-c3
 
 this API is made to run in a Linux environment (originally written in Ubuntu 18.04.2)
 
@@ -61,12 +61,13 @@ builds a zmq message and sends it on the specified topic
 + node: pointer returned by init_node
 + returns 0 on success, -1 on failure and sets errno accordingly
 ```c
-msg_t *subscribe(char *topic, int flags, void *node);
+msg_t *subscribe(char *topic, int flags, msg_t **msg, void *node);
 ```
 listens for a message on the specified topic and returns a pointer to a received
 message.
 + topic: name of the topic
 + flags: set flag COMMS_NONBLOCKING to make function non-blocking
++ msg: reference to a pointer whose value the function will change to point to the received message
 + node: pointer returned by init_node
 + returns a struct containing the received message and the message size, NULL on failure & sets errno accordingly
 ```c
