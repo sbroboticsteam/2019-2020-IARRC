@@ -13,7 +13,7 @@ Ultrasonic = jetsonI2C.jetsonI2C(1,ULTRASONIC_ADDRESS)
 #Configure Ultrasonic
 CONFIG_REG = 0x07
 DATA_REG = 0x03
-#In the data sheet the ultrasonic has two modes, passive 0x00 (on command) or automatic 0x80
+#in the data sheet the ultrasonic has two modes, passive 0x00 (on command) or automatic 0x80
 # ^ MSbits in the upper nibble
 #We must add 0x40 to both of these to enable data recording
 Passive = 0x40
